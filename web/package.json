@@ -6,10 +6,7 @@
       "build": "next build",
       "start": "next start -H 0.0.0.0 -p ${PORT:-3000}",
       "dev": "next dev",
-      "postinstall": "prisma generate",
-      "indexer": "DOTENV_CONFIG_PATH=.env.local tsx -r dotenv/config src/server/indexer.ts",
-      "indexer:watch": "DOTENV_CONFIG_PATH=.env.local tsx watch -r dotenv/config src/server/indexer.ts",
-      "prisma:generate": "prisma generate"
+      "postinstall": "prisma generate"
     },
     "engines": {
       "node": ">=18.17 <=22"

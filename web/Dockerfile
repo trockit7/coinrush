@@ -19,6 +19,7 @@ RUN npm run build
 # Runtime env
 ENV NODE_ENV=production
 ENV PORT=3000
+ENV HOST=0.0.0.0
 EXPOSE 3000
 
 # Fallback for DB_URL remains; then run migrations and start Next on correct host/port

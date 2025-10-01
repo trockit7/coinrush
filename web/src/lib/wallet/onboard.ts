@@ -12,20 +12,23 @@ function compact<T>(arr: (T | false | null | undefined)[]): T[] {
 }
 
 // Read envs once
-const wcProjectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || "";
 const bscRpc = process.env.NEXT_PUBLIC_BSC_HTTP_1 || "https://bsc-testnet.publicnode.com";
 
 // Wallet modules
 const injected = injectedModule();
 
-/* ✅ Drop-in fix
-   WalletConnect expects DECIMAL chain IDs in requiredChains.
-   BSC Testnet = 97. Do NOT pass objects here. */
+/* ✅ Feature-flagged WalletConnect (decimal chain IDs for WC v2)
+   Enable with NEXT_PUBLIC_ENABLE_WALLETCONNECT=true
+   Requires NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID to be set. */
+const enableWc =
+  (process.env.NEXT_PUBLIC_ENABLE_WALLETCONNECT || "").toLowerCase() === "true";
+const wcProjectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || "";
+
 const walletConnect =
-  wcProjectId.trim().length > 0
+  enableWc && wcProjectId.trim()
     ? walletConnectModule({
         projectId: wcProjectId,
-        requiredChains: [97], // <-- decimal chainId for WC v2
+        requiredChains: [97], // decimal for WC (BSC testnet)
       })
     : null;
 

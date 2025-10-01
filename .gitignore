@@ -7,12 +7,12 @@ dist
 .turbo
 .cache
 
-# env
+# env files (keep secrets out of GitHub)
 .env
 .env.*
 !.env.example
 
-# prisma local db files
+# local db files
 *.sqlite
 *.db
 

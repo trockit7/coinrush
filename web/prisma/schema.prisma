@@ -1,4 +1,4 @@
-// prisma/schema.prisma
+// web/prisma/schema.prisma
 
 generator client {
   provider = "prisma-client-js"
@@ -6,8 +6,9 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL") // ← must be exactly this
+  url      = env("DATABASE_URL")
 }
+
 model Profile {
   address    String   @id
   username   String

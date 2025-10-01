@@ -6,9 +6,8 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("postgresql://postgres:qcWGuqCVyNOsXoijAjsBrokbkKiGHZks@shuttle.proxy.rlwy.net:42514/railway")
+  url      = env("DATABASE_URL") // ← must be exactly this
 }
-
 model Profile {
   address    String   @id
   username   String

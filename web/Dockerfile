@@ -12,20 +12,20 @@ RUN npm ci --ignore-scripts
 COPY prisma ./prisma
 RUN npx prisma generate
 
-# 3) Copy the rest and build
+# 3) Copy the rest of the app (now includes .env.production)
 COPY . .
+
+# Make sure Next sees production env during build
+ENV NODE_ENV=production
+# Use the production env for build-time substitution
+RUN cp -f .env.production .env || true
+
+# Build Next.js (NEXT_PUBLIC_* will be baked in)
 RUN npm run build
 
-# ... keep everything above (npm ci --ignore-scripts, prisma generate, build) ...
+# Runtime
+ENV PORT=8080
+EXPOSE 8080
 
-ENV NODE_ENV=production
-ENV PORT=3000
-EXPOSE 3000
-
-# 1) run migrations
-# 2) log the host:port
-# 3) start Next via npm script (which includes -H 0.0.0.0)
-CMD sh -c ': "${DATABASE_URL:=$DB_URL}"; \
-  npx prisma migrate deploy && \
-  echo ">>> Starting Next on 0.0.0.0:${PORT:-3000}" && \
-  exec npm run start'
+# Start: run migrations then start Next, binding to 0.0.0.0
+CMD sh -c ': "${DATABASE_URL:=$DB_URL}"; npx prisma migrate deploy && node node_modules/next/dist/bin/next start -H 0.0.0.0 -p "${PORT:-8080}"'

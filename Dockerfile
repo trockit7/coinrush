@@ -22,4 +22,6 @@ RUN npm run build
 # 4) Runtime
 ENV NODE_ENV=production
 ENV PORT=3000
-CMD sh -c "npx prisma migrate deploy && npm run start"
+
+# Print DATABASE_URL at runtime, then migrate + start
+CMD sh -c 'echo ">> DATABASE_URL=${DATABASE_URL}" && env | sort | grep -E "DATABASE_URL|RAILWAY" || true && npx prisma migrate deploy && npm run start'

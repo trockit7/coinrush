@@ -1,14 +1,16 @@
+// prisma/schema.prisma
+
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider = "postgresql"
+  url      = env("postgresql://postgres:qcWGuqCVyNOsXoijAjsBrokbkKiGHZks@postgres.railway.internal:5432/railway") // e.g. postgresql://user:pass@host:5432/dbname?schema=public
 }
 
 model Profile {
-  address    String  @id
+  address    String   @id
   username   String
   avatar_url String?
   twitter    String?
@@ -23,22 +25,22 @@ model PoolNews {
   body      String
   createdAt DateTime @default(now())
   createdBy String
+
   @@index([pool, createdAt])
 }
 
 model Token {
-  pool_addr   String  @id
-  token_addr  String
-  name        String
-  symbol      String
-  image_url   String?
-  description String?
-  website     String?
-  telegram    String?
-  twitter     String?
-  created_by  String
-  created_at  DateTime @default(now())
-
+  pool_addr      String   @id
+  token_addr     String
+  name           String
+  symbol         String
+  image_url      String?
+  description    String?
+  website        String?
+  telegram       String?
+  twitter        String?
+  created_by     String
+  created_at     DateTime @default(now())
   price_bnb      Float?
   pct_change_24h Float?
 

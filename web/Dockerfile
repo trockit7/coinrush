@@ -16,11 +16,13 @@ RUN npx prisma generate
 COPY . .
 RUN npm run build
 
-# Runtime env
+# --- keep everything above as-is (npm ci --ignore-scripts, prisma generate, build) ---
+
 ENV NODE_ENV=production
 ENV PORT=3000
-ENV HOST=0.0.0.0
 EXPOSE 3000
 
-# Fallback for DB_URL remains; then run migrations and start Next on correct host/port
-CMD sh -c ': "${DATABASE_URL:=$DB_URL}"; npx prisma migrate deploy && npm run start'
+# Run migrations, then start Next on 0.0.0.0 and the PORT Railway provides
+CMD sh -c ': "${DATABASE_URL:=$DB_URL}"; \
+  npx prisma migrate deploy && \
+  node node_modules/next/dist/bin/next start -H 0.0.0.0 -p "${PORT:-3000}"'

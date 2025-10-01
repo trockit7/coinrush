@@ -3,6 +3,7 @@ node_modules
 dist
 .env
 .env.*
+!.env.production   # <— allow .env.production into image
+data
 Dockerfile*
 docker-compose*
-data

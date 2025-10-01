@@ -21,4 +21,4 @@ ENV NODE_ENV=production
 ENV PORT=3000
 
 # Fallback: if DATABASE_URL is unset, use DB_URL (we'll add DB_URL too)
-CMD sh -c ': "${DATABASE_URL:=$DB_URL}"; echo ">> DATABASE_URL=${DATABASE_URL}"; npx prisma migrate deploy && npm run start'
+CMD sh -c ': "${DATABASE_URL:=$DB_URL}"; echo ">> DATABASE_URL=${DATABASE_URL}"; npx prisma db push && npm run start'

@@ -1,0 +1,26 @@
+{
+    "name": "coinrush-contracts",
+    "version": "1.0.0",
+    "private": true,
+    "description": "Bonding-curve factory & pool for BSC (Testnet)",
+    "license": "MIT",
+    "scripts": {
+        "clean": "rimraf cache artifacts",
+        "compile": "hardhat compile",
+        "deploy:bsctest": "hardhat run scripts/deployFactory.ts --network bsctest"
+    },
+    "devDependencies": {
+        "@nomicfoundation/hardhat-toolbox": "6.1.0",
+        "@openzeppelin/contracts": "5.0.2",
+        "@types/node": "20.12.7",
+        "dotenv": "16.4.5",
+        "ethers": "^6.15.0",
+        "hardhat": "2.26.3",
+        "rimraf": "5.0.5",
+        "ts-node": "10.9.2",
+        "typescript": "5.4.5"
+    },
+    "dependencies": {
+        "better-sqlite3": "^12.2.0"
+    }
+}

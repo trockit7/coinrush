@@ -1,0 +1,14 @@
+/* --- Coinrush Anti-Flash Guard (must be first) --- */
+html, body { background:#070b11 !important; }
+:root { color-scheme: light dark; }
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"; }
+.container { max-width: 960px; margin: 0 auto; padding: 16px; }
+
+.site-header { border-bottom: 1px solid #e5e7eb; }
+.site-header .brand { font-weight: 700; text-decoration: none; color: inherit; }
+.site-header .container { display: flex; align-items: center; justify-content: space-between; }
+.nav a { margin-left: 12px; text-decoration: none; color: inherit; opacity: 0.8; }
+.nav a:hover { opacity: 1; }
+
+.site-footer { border-top: 1px solid #e5e7eb; margin-top: 48px; font-size: 12px; opacity: 0.7; }

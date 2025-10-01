@@ -1,0 +1,46 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Profile {
+  address    String  @id
+  username   String
+  avatar_url String?
+  twitter    String?
+  telegram   String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model PoolNews {
+  id        Int      @id @default(autoincrement())
+  pool      String
+  body      String
+  createdAt DateTime @default(now())
+  createdBy String
+  @@index([pool, createdAt])
+}
+
+model Token {
+  pool_addr   String  @id
+  token_addr  String
+  name        String
+  symbol      String
+  image_url   String?
+  description String?
+  website     String?
+  telegram    String?
+  twitter     String?
+  created_by  String
+  created_at  DateTime @default(now())
+
+  price_bnb      Float?
+  pct_change_24h Float?
+
+  @@index([token_addr])
+}

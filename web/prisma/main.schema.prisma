@@ -1,0 +1,31 @@
+// prisma/main.schema.prisma  (MAIN APP DB)
+
+generator client_main {
+  provider = "prisma-client-js"
+  // Put the generated client in a separate folder so it won't collide
+  output   = "../node_modules/.prisma/client-main"
+}
+
+datasource db {
+  provider = "sqlite"
+  // Point this to your MAIN app database (NOT the news DB)
+  url      = env("DATABASE_URL")
+}
+
+model Token {
+  id          Int     @id @default(autoincrement())
+  token_addr  String  @unique
+  pool_addr   String  @unique
+  name        String
+  symbol      String
+  image_url   String?
+
+  // NEW optional fields
+  description String?
+  website     String?
+  telegram    String?
+  twitter     String?
+
+  created_by  String?
+  created_at  BigInt?   // or DateTime? use what you already use elsewhere
+}

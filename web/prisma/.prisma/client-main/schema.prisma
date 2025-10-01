@@ -1,0 +1,57 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+generator clientMain {
+  provider = "prisma-client-js"
+  output   = ".prisma/client-main"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL_NEWS")
+}
+
+model PoolNews {
+  id        String   @id @default(cuid())
+  pool      String // store lowercase 0x... address
+  body      String // the news text
+  author    String // store lowercase 0x... address
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([pool, createdAt(sort: Desc)])
+}
+
+/**
+ * ─────────────────────────────────────────────
+ * Token model — extended with social/meta fields
+ * ──────────────────────────────────────────────
+ */
+model Token {
+  /// Primary key: pool address (lowercase 0x…)
+  pool_addr String @id
+
+  /// Token contract address (lowercase 0x…)
+  token_addr String
+
+  /// Optional metadata you upsert in your route
+  name       String?
+  symbol     String?
+  decimals   Int?
+  image_url  String?
+  created_by String?
+
+  // 🔹 New fields to match your route
+  description String?
+  website     String?
+  telegram    String?
+  twitter     String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([token_addr])
+}

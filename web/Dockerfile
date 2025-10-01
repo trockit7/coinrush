@@ -1,16 +1,15 @@
 # web/Dockerfile
 FROM node:20-alpine
 
-# Prisma/Next need a few basics on alpine
 RUN apk add --no-cache libc6-compat
 
 WORKDIR /app
 
-# 1) Install deps first (better cache)
+# 1) Install deps (skip lifecycle scripts so postinstall doesn't run yet)
 COPY package*.json ./
-RUN npm ci
+RUN npm ci --ignore-scripts
 
-# 2) Prisma client generation needs schema
+# 2) Copy Prisma schema and generate client (now schema exists)
 COPY prisma ./prisma
 RUN npx prisma generate
 
@@ -18,9 +17,8 @@ RUN npx prisma generate
 COPY . .
 RUN npm run build
 
-# 4) Runtime env
 ENV NODE_ENV=production
 ENV PORT=3000
 
-# 5) Start: run DB migrations then start Next
-CMD sh -c "npx prisma migrate deploy && npm run start"
+# Fallback: if DATABASE_URL is unset, use DB_URL (we'll add DB_URL too)
+CMD sh -c ': "${DATABASE_URL:=$DB_URL}"; echo ">> DATABASE_URL=${DATABASE_URL}"; npx prisma migrate deploy && npm run start'

@@ -1,23 +1,18 @@
 # root-level Dockerfile that builds the Next.js app inside ./web
 FROM node:20-alpine
 
-# Small runtime deps
 RUN apk add --no-cache libc6-compat
-
-# IMPORTANT: prevent prisma from running at npm install time
 ENV PRISMA_SKIP_POSTINSTALL=1
 
 WORKDIR /app
 
-# 1) Install deps (cache-friendly)
+# 1) Install deps using cached package files
 COPY web/package*.json ./web/
 RUN cd web && npm ci
 
 # 2) Copy Prisma schema and generate client
-# If your schema is in web/prisma (most likely):
+# If your schema is web/prisma (most setups):
 COPY web/prisma ./web/prisma
-# (If you also have a generated .prisma folder, this is harmless)
-COPY web/.prisma ./web/.prisma 2>/dev/null || true
 RUN cd web && npx prisma generate
 
 # 3) Copy the rest and build Next

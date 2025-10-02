@@ -9,7 +9,7 @@ const BASE = serverBaseUrl();
 
 import React from "react";
 import { useParams } from "next/navigation";
-import dynamic from "next/dynamic";
+import nextDynamic from "next/dynamic";
 import styles from "./styles.module.css";
 import { useConnectWallet } from "@web3-onboard/react";
 
@@ -104,7 +104,7 @@ const ERC20_MIN_ABI = [
 /* small utils */
 
 const toBI = (v: number | bigint) => (typeof v === "bigint" ? v : BigInt(Math.trunc(v)));
-const RemoteCandlesChart = dynamic(() => import("@/components/RemoteCandlesChart"), { ssr: false });
+const RemoteCandlesChart = nextDynamic(() => import("@/components/RemoteCandlesChart"), { ssr: false });
 
 /* helper: works whether getConnectedAddress returns string or Promise<string> */
 async function safeConnectedAddress(): Promise<string> {

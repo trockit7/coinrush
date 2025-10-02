@@ -1,60 +1,75 @@
 // src/lib/wallet/onboard.ts
 "use client";
 
-import Onboard from "@web3-onboard/core";
-import injectedModule, {
-  ProviderLabel,
-  type InjectedWalletModule
-} from "@web3-onboard/injected-wallets";
+import Onboard, { type InitOptions } from "@web3-onboard/core";
+import injectedModule, { ProviderLabel } from "@web3-onboard/injected-wallets";
 import walletConnectModule from "@web3-onboard/walletconnect";
-// import coinbaseWalletModule from "@web3-onboard/coinbase" // (OPTIONAL) add later if needed
 
-// 1) Injected wallets — prioritize MetaMask at the top (no brittle label strings)
-const injected: InjectedWalletModule = injectedModule({
+// Narrow type for injected init options (helps TS without extra types)
+type InjectedInit = Parameters<typeof injectedModule>[0];
+
+/* 1) Injected wallets — prioritize MetaMask at the top */
+const injected = injectedModule({
   sort: (wallets) => {
     const mm = wallets.find((w) => w.label === ProviderLabel.MetaMask);
-    // Keep order for the rest, just put MM first if present
     return [mm, ...wallets.filter((w) => w.label !== ProviderLabel.MetaMask)].filter(
       Boolean
-    ) as typeof wallets;
+    );
   }
-} as Parameters<typeof injectedModule>[0]); // help TS infer the exact option shape
+} as InjectedInit);
 
-// 2) WalletConnect (for mobile / non-MM users) — includes dappUrl
+/* 2) WalletConnect — use hex chain id + rpcUrl object shape */
 const walletConnect = walletConnectModule({
-  projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID!,
-  requiredChains: [97], // BSC Testnet (decimal for WC v2)
-  dappUrl: process.env.NEXT_PUBLIC_DAPP_URL! // helps WC deep-link + removes warning
-});
-
-// 3) Build Onboard
-const onboard = Onboard({
-  wallets: [
-    injected,
-    walletConnect
-    // coinbaseWalletModule() // (OPTIONAL) add back if you really need Coinbase
-  ],
-  chains: [
+  projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || "",
+  requiredChains: [
     {
-      id: "0x61", // 97 (hex)
-      token: "tBNB",
-      label: "BSC Testnet",
-      rpcUrl: process.env.NEXT_PUBLIC_BSC_HTTP_1!
+      id: "0x61",
+      rpcUrl:
+        process.env.NEXT_PUBLIC_BSC_HTTP_1 ||
+        "https://bsc-testnet.publicnode.com"
     }
   ],
+  // prefer SITE_URL; fall back to DAPP_URL or a safe placeholder
+  dappUrl:
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    process.env.NEXT_PUBLIC_DAPP_URL ||
+    "https://your.domain"
+});
+
+/* 3) Build Onboard */
+export const onboard = Onboard({
+  wallets: [injected, walletConnect],
+  chains: [
+    {
+      id: "0x61",
+      token: "BNB",
+      label: "BSC Testnet",
+      rpcUrl:
+        process.env.NEXT_PUBLIC_BSC_HTTP_1 ||
+        "https://bsc-testnet.publicnode.com"
+    }
+  ],
+  // (optional) keep your app metadata if you want it shown in Onboard’s UI
   appMetadata: {
     name: "Coinrush",
     description: "Coinrush on BSC Testnet",
     icon: "https://coinrush-production.up.railway.app/icon.png",
-    gettingStartedGuide: process.env.NEXT_PUBLIC_DAPP_URL!,
-    explore: process.env.NEXT_PUBLIC_DAPP_URL!,
+    gettingStartedGuide:
+      process.env.NEXT_PUBLIC_SITE_URL ||
+      process.env.NEXT_PUBLIC_DAPP_URL ||
+      "https://your.domain",
+    explore:
+      process.env.NEXT_PUBLIC_SITE_URL ||
+      process.env.NEXT_PUBLIC_DAPP_URL ||
+      "https://your.domain",
     recommendedInjectedWallets: [{ name: "MetaMask", url: "https://metamask.io" }]
   }
-});
+} satisfies InitOptions);
 
+// Keep default export to match existing imports elsewhere in the app
 export default onboard;
 
-// 4) Auto-reconnect the last used wallet on app start
+/* 4) Auto-reconnect the last used wallet on app start */
 export async function autoReconnectLastWallet() {
   if (typeof window === "undefined") return;
   const last = window.localStorage.getItem("cr_last_wallet_label");
@@ -68,7 +83,7 @@ export async function autoReconnectLastWallet() {
   }
 }
 
-// 5) Subscribe once to remember the current wallet label
+/* 5) Subscribe once to remember the current wallet label */
 let subscribed = false;
 export function subscribeRememberWallet() {
   if (subscribed) return;

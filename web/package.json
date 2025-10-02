@@ -3,48 +3,47 @@
     "private": true,
     "version": "1.0.0",
     "scripts": {
-      "build": "next build",
-      "start": "next start -H 0.0.0.0 -p ${PORT:-3000}",
-      "dev": "next dev",
-      "postinstall": "prisma generate"
+        "build": "next build",
+        "start": "next start -H 0.0.0.0 -p ${PORT:-3000}",
+        "dev": "next dev",
+        "postinstall": "prisma generate"
     },
     "engines": {
-      "node": ">=18.17 <=22"
+        "node": ">=18.17 <=22"
     },
     "dependencies": {
-      "@prisma/client": "^6.16.3",
-      "@rainbow-me/rainbowkit": "^2.2.8",
-      "@tanstack/react-query": "5.90.2",
-      "@tanstack/react-query-devtools": "5.90.2",
-      "@wagmi/core": "^2.21.1",
-      "@web3-onboard/coinbase": "^2.4.2",
-      "@web3-onboard/core": "^2.24.1",
-      "@web3-onboard/injected-wallets": "^2.11.3",
-      "@web3-onboard/react": "^2.11.0",
-      "@web3-onboard/walletconnect": "^2.6.2",
-      "better-sqlite3": "^12.2.0",
-      "ethers": "6.13.2",
-      "lightweight-charts": "4.2.3",
-      "next": "14.2.32",
-      "react": "18.3.1",
-      "react-dom": "18.3.1",
-      "sharp": "0.34.3",
-      "viem": "2.37.8",
-      "wagmi": "2.17.5"
+        "@rainbow-me/rainbowkit": "^2.2.8",
+        "@tanstack/react-query": "5.90.2",
+        "@tanstack/react-query-devtools": "5.90.2",
+        "@wagmi/core": "^2.21.1",
+        "@web3-onboard/coinbase": "^2.4.2",
+        "@web3-onboard/core": "^2.24.1",
+        "@web3-onboard/injected-wallets": "^2.11.3",
+        "@web3-onboard/react": "^2.11.0",
+        "@web3-onboard/walletconnect": "^2.6.2",
+        "better-sqlite3": "^12.2.0",
+        "ethers": "6.13.2",
+        "lightweight-charts": "4.2.3",
+        "next": "14.2.32",
+        "react": "18.3.1",
+        "react-dom": "18.3.1",
+        "sharp": "0.34.3",
+        "viem": "2.37.8",
+        "wagmi": "2.17.5"
     },
     "devDependencies": {
-      "@types/better-sqlite3": "^7.6.13",
-      "@types/node": "^24.3.0",
-      "@types/react": "^19.1.17",
-      "@types/react-dom": "^19.1.11",
-      "prisma": "^6.16.3",
-      "ts-node": "10.9.2",
-      "tsx": "4.20.5",
-      "typescript": "^5.9.3"
+        "@prisma/client": "^6.16.3",
+        "@types/better-sqlite3": "^7.6.13",
+        "@types/node": "^24.3.0",
+        "@types/react": "^19.1.17",
+        "@types/react-dom": "^19.1.11",
+        "prisma": "^6.16.3",
+        "ts-node": "10.9.2",
+        "tsx": "4.20.5",
+        "typescript": "^5.9.3"
     },
     "overrides": {
-      "@walletconnect/universal-provider": "2.21.1",
-      "@walletconnect/sign-client": "2.21.1"
+        "@walletconnect/universal-provider": "2.21.1",
+        "@walletconnect/sign-client": "2.21.1"
     }
-  }
-  
+}

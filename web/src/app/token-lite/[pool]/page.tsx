@@ -1,6 +1,12 @@
 // src/app/token-lite/[pool]/page.tsx
 "use client";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
+import { serverBaseUrl } from "@/lib/base-url";
+const BASE = serverBaseUrl();
+
 import React from "react";
 import { useParams } from "next/navigation";
 import dynamic from "next/dynamic";
@@ -178,7 +184,7 @@ async function fetchProfiles(addrs: string[]): Promise<ProfilesBook> {
   const uniq = Array.from(new Set((addrs || []).map(a => (a || "").toLowerCase()).filter(Boolean)));
   if (!uniq.length) return {};
   try {
-    const r = await fetch("/api/profile/bulk", {
+    const r = await fetch(`${BASE}/api/profile/bulk`, {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ addresses: uniq }),
@@ -615,7 +621,7 @@ export default function PublicTokenLitePage() {
 
   const fetchNews = React.useCallback(async () => {
     try {
-      const r = await fetch(`/api/news?pool=${poolAddr}`, { cache: "no-store" });
+      const r = await fetch(`${BASE}/api/news?pool=${poolAddr}`, { cache: "no-store" });
       const j = await r.json();
       setNews(Array.isArray(j) ? j : []);
     } catch {}
@@ -630,7 +636,7 @@ export default function PublicTokenLitePage() {
       const payload = editingId
         ? { id: editingId, body: newsBody, pool: poolAddr }
         : { body: newsBody, pool: poolAddr };
-      const r = await fetch("/api/news", {
+      const r = await fetch(`${BASE}/api/news`, {
         method,
         headers: { "content-type": "application/json", "x-addr": a },
         body: JSON.stringify(payload),
@@ -650,7 +656,7 @@ export default function PublicTokenLitePage() {
 
       if (!a) { setAuthHint("Connect wallet first"); return; }
 
-      const r = await fetch("/api/news", {
+      const r = await fetch(`${BASE}/api/news`, {
         method: "DELETE",
         headers: { "content-type": "application/json", "x-addr": a },
         body: JSON.stringify({ id }),
@@ -672,7 +678,7 @@ export default function PublicTokenLitePage() {
     const a = (addressLower || addr || viewer || "").toLowerCase();
     if (!a) { setHasProfile(false); return; }
     try {
-      const r = await fetch("/api/profile/bulk", {
+      const r = await fetch(`${BASE}/api/profile/bulk`, {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ addresses: [a] }),
@@ -703,7 +709,7 @@ export default function PublicTokenLitePage() {
         setSnap(s);
 
         let j: any = {};
-        try { j = await fetch(`/api/pool/meta?pool=${poolAddr}&chain=${chain}`).then(r => r.json()).catch(() => ({})); } catch {}
+        try { j = await fetch(`${BASE}/api/pool/meta?pool=${poolAddr}&chain=${chain}`).then(r => r.json()).catch(() => ({})); } catch {}
         let migrated = Boolean(j?.migrated);
         let created_by = (j?.created_by || "").toLowerCase();
 

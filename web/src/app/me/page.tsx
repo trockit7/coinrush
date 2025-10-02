@@ -1,8 +1,21 @@
 // src/app/me/page.tsx
 "use client";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 import * as React from "react";
 import { BrowserProvider } from "ethers";
+
+/*────────────────────────────────────────────────────────
+  Base URL helper (client-safe)
+────────────────────────────────────────────────────────*/
+function getBaseUrl() {
+  if (typeof window !== "undefined") return window.location.origin;
+  // Fallback for very rare cases where this runs in a non-window env
+  return (process.env.NEXT_PUBLIC_DAPP_URL || "").replace(/\/+$/, "") || "";
+}
+const BASE = getBaseUrl();
 
 /*────────────────────────────────────────────────────────
   Types
@@ -137,11 +150,11 @@ async function fileToSafeAvatarDataURL(file: File): Promise<string> {
 }
 
 /*────────────────────────────────────────────────────────
-  Fetch helpers
+  Fetch helpers (absolute URLs + no-store)
 ────────────────────────────────────────────────────────*/
-async function fetchProfile(addr: string): Promise<Profile> {
+async function fetchProfile(addr: string): Promise(Profile> {
   try {
-    const r = await fetch("/api/profile/bulk", {
+    const r = await fetch(`${BASE}/api/profile/bulk`, {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ addresses: [addr.toLowerCase()] }),
@@ -173,7 +186,7 @@ async function saveProfileAPI(p: {
   twitter: string;
   telegram: string;
 }) {
-  const r = await fetch("/api/profile", {
+  const r = await fetch(`${BASE}/api/profile`, {
     method: "POST",
     headers: {
       "content-type": "application/json",
@@ -588,7 +601,7 @@ export default function ProfileEditPage() {
               <div>
                 Telegram:{" "}
                 <a
-                  href={`https://t.me/${String(form.telegram).replace(/^@/, "")}`}
+                  href={`https://t.me/${String(form.telegram).replace/^@/, "")}`}
                   target="_blank"
                   style={{ color: "#d8ecff", textDecoration: "underline" }}
                 >

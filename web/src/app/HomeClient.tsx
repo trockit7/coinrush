@@ -11,7 +11,9 @@ import { LoadingStripe } from "@/components/LoadingStripe";
 import { assertChainId, assertAddressAllowed } from "@/lib/security/wallet-preflight";
 import { loadTrades } from "@/lib/tokenPublic";
 import { useConnectWallet } from "@web3-onboard/react";
-import { autoReconnectLastWallet, subscribeRememberWallet } from "@/lib/wallet/onboard";
+
+// ⬇️ NEW: initialize onboard & add persistence helpers
+import onboard, { autoReconnectLastWallet, subscribeRememberWallet } from "@/lib/wallet/onboard";
 
 /*────────────────────────────────────────────────────────
   Types
@@ -483,19 +485,6 @@ function FormContent({
 /*────────────────────────────────────────────────────────
   Page Component
 ────────────────────────────────────────────────────────*/
-export default function HomeClient() {
-  // Keep your other hooks here as you already have them…
-  const [walletState] = useConnectWallet(); // ok if unused elsewhere
-
-  React.useEffect(() => {
-    // Remember the wallet label on changes
-    subscribeRememberWallet();
-    // Auto-reconnect the last used wallet without popping a modal
-    autoReconnectLastWallet();
-  }, []);
-
-  // …rest of your component stays the same
-}
 export default function HomeClient({
   initialLatest,
   initialTrending,
@@ -518,6 +507,12 @@ export default function HomeClient({
 
   // Access Onboard wallet
   const [{ wallet }, connect] = useConnectWallet();
+
+  // ⬇️ NEW: start persistence + auto-reconnect once on mount
+  React.useEffect(() => {
+    subscribeRememberWallet();
+    autoReconnectLastWallet();
+  }, []);
 
   // ✅ Self-contained signer acquisition (connect + switch chain + get signer)
   async function getFreshSigner() {

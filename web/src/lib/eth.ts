@@ -49,17 +49,10 @@ function getBrowserProvider(chainId: number = 97): BrowserProvider | null {
 
 /** ✅ Factory contract getter — keep this exact name/signature */
 function factoryContract(readonly = true, chainId = 97) {
-  // ⬇️ UPDATED: env + fallback, no ".env.local" mention
-  const addr = (
-    process.env.NEXT_PUBLIC_BSC_FACTORY_ADDRESS ??
-    process.env.BSC_FACTORY_ADDRESS ??
-    ""
-  ).trim();
-
-  if (!/^0x[0-9a-fA-F]{40}$/.test(addr)) {
-    throw new Error("Missing or invalid NEXT_PUBLIC_BSC_FACTORY_ADDRESS");
+  const addr = (process.env.NEXT_PUBLIC_BSC_FACTORY_ADDRESS || "").trim();
+  if (!/^0x[a-fA-F0-9]{40}$/.test(addr)) {
+    throw new Error("Missing or invalid NEXT_PUBLIC_BSC_FACTORY_ADDRESS in .env.local");
   }
-
   const provider = readonly ? getPublicProvider(chainId) : getBrowserProvider(chainId);
   if (!provider) throw new Error("No browser provider available");
   return new Contract(addr, FACTORY_ABI, provider as any);
@@ -92,16 +85,9 @@ async function createTokenAndPoolWithSigner(
   }
 ) {
   const chainId = opts.chainId ?? 97;
-
-  // ⬇️ UPDATED: env + fallback, no ".env.local" mention
-  const factoryAddr = (
-    process.env.NEXT_PUBLIC_BSC_FACTORY_ADDRESS ??
-    process.env.BSC_FACTORY_ADDRESS ??
-    ""
-  ).trim();
-
-  if (!/^0x[0-9a-fA-F]{40}$/.test(factoryAddr)) {
-    throw new Error("Missing or invalid NEXT_PUBLIC_BSC_FACTORY_ADDRESS");
+  const factoryAddr = (process.env.NEXT_PUBLIC_BSC_FACTORY_ADDRESS || "").trim();
+  if (!/^0x[a-fA-F0-9]{40}$/.test(factoryAddr)) {
+    throw new Error("Missing or invalid NEXT_PUBLIC_BSC_FACTORY_ADDRESS in .env.local");
   }
 
   // Read fee USING public RPC (don’t hit wallet RPC for this)

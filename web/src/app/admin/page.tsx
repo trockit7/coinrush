@@ -14,9 +14,7 @@ import {
 } from "ethers";
 
 const CHAIN_ID = 97; // BSC Testnet
-
-// ⬇️ UPDATED: accept NEXT_PUBLIC_ or non-prefixed, no ".env.local" mention
-const FACTORY_ADDR = (process.env.NEXT_PUBLIC_BSC_FACTORY_ADDRESS ?? process.env.BSC_FACTORY_ADDRESS ?? "").trim();
+const FACTORY_ADDR = (process.env.NEXT_PUBLIC_BSC_FACTORY_ADDRESS || "").trim();
 
 function cleanDec(s: string) {
   return s.replace(/[^\d.]/g, "").replace(/(\..*)\./g, "$1");
@@ -191,10 +189,7 @@ export default function AdminPlatformSettingsDebug() {
   ];
 
   async function reload(prov: JsonRpcProvider) {
-    // ⬇️ UPDATED validation + message
-    if (!/^0x[0-9a-fA-F]{40}$/.test(FACTORY_ADDR)) {
-      throw new Error("Missing or invalid NEXT_PUBLIC_BSC_FACTORY_ADDRESS");
-    }
+    if (!FACTORY_ADDR) throw new Error("FACTORY_ADDR env var not set (NEXT_PUBLIC_BSC_FACTORY_ADDRESS).");
 
     const code = await prov.getCode(FACTORY_ADDR);
     if (!code || code === "0x") throw new Error("No contract at FACTORY_ADDR on this chain");
@@ -281,7 +276,7 @@ export default function AdminPlatformSettingsDebug() {
       setStatus("No wallet");
       return;
     }
-
+    
     const [acc] = await prov.send("eth_requestAccounts", []);
     setAccount(acc);
   }
@@ -296,7 +291,7 @@ export default function AdminPlatformSettingsDebug() {
       setStatus("No wallet");
       return;
     }
-
+  
     const signer = await prov.getSigner();
     const report: Record<string, string> = {};
     const candidates =
@@ -338,7 +333,7 @@ export default function AdminPlatformSettingsDebug() {
       setStatus("Updating platform fee…");
       const prov = getBrowserProvider();
       if (!prov) throw new Error("No wallet");
-
+      
       const signer = await prov.getSigner();
 
       await writeFirst(signer, FACTORY_ADDR, feeWriteCandidates, [n], true);
@@ -365,7 +360,7 @@ export default function AdminPlatformSettingsDebug() {
       setStatus("Updating creation fee…");
       const prov = getBrowserProvider();
       if (!prov) throw new Error("No wallet");
-
+      
       const signer = await prov.getSigner();
 
       await writeFirst(signer, FACTORY_ADDR, creationWriteCandidates, [parseEther(String(v))], true);
@@ -391,7 +386,7 @@ export default function AdminPlatformSettingsDebug() {
       setStatus("Updating treasury…");
       const prov = getBrowserProvider();
       if (!prov) throw new Error("No wallet");
-
+      
       const signer = await prov.getSigner();
 
       await writeFirst(signer, FACTORY_ADDR, treasuryWriteCandidates, [treasury], true);

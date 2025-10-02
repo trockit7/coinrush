@@ -1,8 +1,8 @@
 // src/app/me/page.tsx
 "use client";
 
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
+// Make the page dynamic so it won't be prerendered
+export const dynamic = "force-dynamic" as const;
 
 import * as React from "react";
 import { BrowserProvider } from "ethers";
@@ -12,7 +12,6 @@ import { BrowserProvider } from "ethers";
 ────────────────────────────────────────────────────────*/
 function getBaseUrl() {
   if (typeof window !== "undefined") return window.location.origin;
-  // Fallback for very rare cases where this runs in a non-window env
   return (process.env.NEXT_PUBLIC_DAPP_URL || "").replace(/\/+$/, "") || "";
 }
 const BASE = getBaseUrl();
@@ -163,7 +162,6 @@ async function fetchProfile(addr: string): Promise<Profile> {
     if (!r.ok) return {};
     const j = await r.json();
 
-    // Accept both shapes: map { addr: profile } or array [{ address, ... }]
     if (Array.isArray(j)) {
       const hit = j.find((p: any) => same(p?.address, addr));
       return {
@@ -190,10 +188,10 @@ async function saveProfileAPI(p: {
     method: "POST",
     headers: {
       "content-type": "application/json",
-      "x-addr": p.address, // IMPORTANT for auth
+      "x-addr": p.address,
     },
-    body: JSON.stringify(p),
     cache: "no-store",
+    body: JSON.stringify(p),
   });
   if (!r.ok) {
     const t = await r.text().catch(() => "");
@@ -277,7 +275,7 @@ export default function ProfileEditPage() {
         setError("No wallet detected. Install MetaMask or a compatible wallet.");
         return;
       }
-      new BrowserProvider(eth); // ensure provider exists
+      new BrowserProvider(eth);
       const accounts: string[] = await eth.request({ method: "eth_requestAccounts" });
       const a = (accounts?.[0] || "").toLowerCase();
       if (!a) {
@@ -342,7 +340,6 @@ export default function ProfileEditPage() {
       if (!payload.username) throw new Error("Username is required.");
       await saveProfileAPI(payload);
       setSavedAt(Date.now());
-      // Refresh local snapshot
       const p = await fetchProfile(address);
       setForm({
         username: p.username || "",
@@ -363,18 +360,10 @@ export default function ProfileEditPage() {
       <div style={ui.header.wrap}>
         <div style={ui.header.brand}>COINRUSH</div>
         <nav style={ui.header.nav}>
-          <a href="/" style={ui.header.navLink}>
-            Home
-          </a>
-          <a href="/explore" style={ui.header.navLink}>
-            Explore
-          </a>
-          <a href="/create" style={ui.header.navLink}>
-            Create
-          </a>
-          <a href="/docs" style={ui.header.navLink}>
-            Docs
-          </a>
+          <a href="/" style={ui.header.navLink}>Home</a>
+          <a href="/explore" style={ui.header.navLink}>Explore</a>
+          <a href="/create" style={ui.header.navLink}>Create</a>
+          <a href="/docs" style={ui.header.navLink}>Docs</a>
         </nav>
         <div style={ui.header.grow} />
         {address ? (
@@ -431,15 +420,10 @@ export default function ProfileEditPage() {
 
           {/* Avatar uploader */}
           <label
-            onDragOver={(e) => {
-              e.preventDefault();
-              setDragOver(true);
-            }}
+            onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
             onDragLeave={() => setDragOver(false)}
             onDrop={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              setDragOver(false);
+              e.preventDefault(); e.stopPropagation(); setDragOver(false);
               handleAvatarFiles(e.dataTransfer?.files || null);
             }}
             title={address ? "Click or drop an image" : "Connect your wallet first"}

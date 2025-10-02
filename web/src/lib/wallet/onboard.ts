@@ -29,9 +29,9 @@ const coinbase = coinbaseWalletModule();
 const walletConnect =
   enableWc && wcProjectId && dappUrl
     ? walletConnectModule({
-        projectId: wcProjectId,
-        requiredChains: [97],      // BSC Testnet (decimal for WC v2)
-        dappUrl: dappUrl,          // <-- keep this
+        projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID!, // keep non-empty
+        requiredChains: [97],       // BSC Testnet (decimal for WC v2)
+        dappUrl: process.env.NEXT_PUBLIC_DAPP_URL!, // <-- keep this
       })
     : null;
 
@@ -49,20 +49,18 @@ const onboard: OnboardAPI = Onboard({
   wallets: compact([injected, walletConnect, coinbase]),
   chains: [
     {
-      id: "0x61", // BSC Testnet (hex for Onboard)
+      id: "0x61", // BSC Testnet
       token: "tBNB",
       label: "BSC Testnet",
-      rpcUrl: rpcEnv || bscRpc, // uses env if set; falls back to public node
+      rpcUrl: process.env.NEXT_PUBLIC_BSC_HTTP_1! || bscRpc,
     },
   ],
-  // ⬇️ REPLACED appMetadata block (no `url` key; valid fields only)
   appMetadata: {
     name: "Coinrush",
     description: "Coinrush on BSC Testnet",
-    // valid fields:
-    icons: ["https://coinrush-production.up.railway.app/icon.png"],
-    gettingStartedGuide: process.env.NEXT_PUBLIC_DAPP_URL!, // optional but valid
-    explore: process.env.NEXT_PUBLIC_DAPP_URL!,             // optional but valid
+    icon: "https://coinrush-production.up.railway.app/icon.png", // <- singular 'icon'
+    gettingStartedGuide: process.env.NEXT_PUBLIC_DAPP_URL!,       // optional, valid
+    explore: process.env.NEXT_PUBLIC_DAPP_URL!,                   // optional, valid
     recommendedInjectedWallets: [
       { name: "MetaMask", url: "https://metamask.io" }
     ]

@@ -1,7 +1,5 @@
-// src/app/me/page.tsx
 "use client";
 
-// Make the page dynamic so it won't be prerendered
 export const dynamic = "force-dynamic" as const;
 
 import * as React from "react";

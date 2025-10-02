@@ -1,9 +1,11 @@
+# Ignore typical dev artifacts
 node_modules
 .next
 dist
+
+# Ignore env files by default…
 .env
 .env.*
-!.env.production   # <— allow .env.production into image
-data
-Dockerfile*
-docker-compose*
+
+# …but keep production env for build
+!.env.production

@@ -591,6 +591,7 @@ export default function ProfileEditPage() {
                 <a
                   href={`https://twitter.com/${String(form.twitter).replace(/^@/, "")}`}
                   target="_blank"
+                  rel="noopener noreferrer"
                   style={{ color: "#d8ecff", textDecoration: "underline" }}
                 >
                   @{String(form.twitter).replace(/^@/, "")}
@@ -601,8 +602,9 @@ export default function ProfileEditPage() {
               <div>
                 Telegram:{" "}
                 <a
-                  href={`https://t.me/${String(form.telegram).replace/^@/, "")}`}
+                  href={`https://t.me/${String(form.telegram).replace(/^@/, "")}`}
                   target="_blank"
+                  rel="noopener noreferrer"
                   style={{ color: "#d8ecff", textDecoration: "underline" }}
                 >
                   @{String(form.telegram).replace(/^@/, "")}

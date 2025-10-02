@@ -14,9 +14,8 @@ function compact<T>(arr: (T | false | null | undefined)[]): T[] {
 // Env reads (once)
 // ──────────────────────────────────────────────────────────
 const dappUrl = (process.env.NEXT_PUBLIC_DAPP_URL || "").trim();
-const bscRpc =
-  (process.env.NEXT_PUBLIC_BSC_HTTP_1 || "").trim() ||
-  "https://bsc-testnet.publicnode.com";
+const rpcEnv = (process.env.NEXT_PUBLIC_BSC_HTTP_1 || "").trim();
+const bscRpc = rpcEnv || "https://bsc-testnet.publicnode.com";
 
 const enableWc =
   (process.env.NEXT_PUBLIC_ENABLE_WALLETCONNECT || "").toLowerCase() === "true";
@@ -26,18 +25,17 @@ const wcProjectId = (process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || "").tri
 const injected = injectedModule();
 const coinbase = coinbaseWalletModule();
 
-// ✅ WalletConnect with dappUrl (fixes WC warning)
+// ✅ WalletConnect with dappUrl (required to avoid WC warning)
 const walletConnect =
   enableWc && wcProjectId && dappUrl
     ? walletConnectModule({
         projectId: wcProjectId,
-        requiredChains: [97], // BSC Testnet (decimal for WC v2)
-        dappUrl,              // <-- important for WC wallets / warning
+        requiredChains: [97],      // BSC Testnet (decimal for WC v2)
+        dappUrl: dappUrl,          // <-- keep this
       })
     : null;
 
 if (enableWc && (!wcProjectId || !dappUrl)) {
-  // Don’t throw—just surface a helpful console note and continue without WC.
   console.warn(
     "[onboard] WalletConnect disabled: missing " +
       (wcProjectId ? "" : "NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID ") +
@@ -51,21 +49,24 @@ const onboard: OnboardAPI = Onboard({
   wallets: compact([injected, walletConnect, coinbase]),
   chains: [
     {
-      id: "0x61", // 97 (hex)
+      id: "0x61", // BSC Testnet (hex for Onboard)
       token: "tBNB",
       label: "BSC Testnet",
-      rpcUrl: bscRpc,
+      rpcUrl: rpcEnv || bscRpc, // uses env if set; falls back to public node
     },
   ],
+  // ⬇️ REPLACED appMetadata block (no `url` key; valid fields only)
   appMetadata: {
     name: "Coinrush",
     description: "Coinrush on BSC Testnet",
-    // Good practice for WC wallets & general deep linking
-    url: dappUrl || "https://example.com",
-    // You can host this icon anywhere you control:
+    // valid fields:
     icons: ["https://coinrush-production.up.railway.app/icon.png"],
-    recommendedInjectedWallets: [{ name: "MetaMask", url: "https://metamask.io" }],
-  },
+    gettingStartedGuide: process.env.NEXT_PUBLIC_DAPP_URL!, // optional but valid
+    explore: process.env.NEXT_PUBLIC_DAPP_URL!,             // optional but valid
+    recommendedInjectedWallets: [
+      { name: "MetaMask", url: "https://metamask.io" }
+    ]
+  }
 });
 
 export default onboard;

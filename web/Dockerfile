@@ -12,27 +12,26 @@ RUN npm ci --ignore-scripts
 COPY prisma ./prisma
 RUN npx prisma generate
 
-# --- you already did deps + prisma earlier ---
-# Make sure we are in the app root
-WORKDIR /app
-
-# Copy the rest of the repo (includes web/.env.production)
+# 3) Copy the rest of the repo
 COPY . .
 
-# Build the Next app **inside /app/web**
+# We were in /app earlier; copy the repo already done above.
+# Make sure we are inside the web app now:
 WORKDIR /app/web
 
-# Make sure Next sees production env during build (bakes NEXT_PUBLIC_* into client)
+# Ensure prisma directory exists in the image (explicit copy is harmless)
+# (If this Dockerfile lives inside /web, this COPY is redundant but safe)
+COPY prisma ./prisma
+
+# Make production env available to Next *during build*
 ENV NODE_ENV=production
 RUN cp -f .env.production .env || true
 
-# Build Next.js (now it bakes NEXT_PUBLIC_* correctly)
+# Build Next.js (bakes NEXT_PUBLIC_* envs)
 RUN npm run build
 
 # ---- Runtime ----
 ENV PORT=8080
 EXPOSE 8080
-
-# Stay in /app/web for runtime too
 WORKDIR /app/web
-CMD sh -c ': "${DATABASE_URL:=$DB_URL}"; npx prisma migrate deploy && node node_modules/next/dist/bin/next start -H 0.0.0.0 -p "${PORT:-8080}"'
+CMD sh -c ': "${DATABASE_URL:=$DB_URL}"; npx prisma migrate deploy --schema=./prisma/schema.prisma && node node_modules/next/dist/bin/next start -H 0.0.0.0 -p "${PORT:-8080}"'

@@ -1,76 +1,70 @@
 // web/src/lib/wallet/onboard.ts
 "use client";
 
-import Onboard from "@web3-onboard/core";
+import Onboard, { type OnboardAPI } from "@web3-onboard/core";
 import injectedModule from "@web3-onboard/injected-wallets";
 import walletConnectModule from "@web3-onboard/walletconnect";
-// import coinbaseWalletModule from "@web3-onboard/coinbase" // (OPTIONAL) add later if needed
+import coinbaseWalletModule from "@web3-onboard/coinbase";
 
-// 1) Only allow the injected wallets you want (MetaMask only)
-//    Filters out Trust/CB injected so they don't hijack the provider
-const injected = injectedModule({
-  filter: (wallets) => wallets.filter((w) => w.label === "MetaMask"),
-});
+function compact<T>(arr: (T | false | null | undefined)[]): T[] {
+  return arr.filter(Boolean) as T[];
+}
 
-// 2) WalletConnect (for mobile / non-MM users) — includes dappUrl
-const walletConnect = walletConnectModule({
-  projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID!,
-  requiredChains: [97], // BSC Testnet (decimal for WC v2)
-  dappUrl: process.env.NEXT_PUBLIC_DAPP_URL!, // helps WC deep-link + removes warning
-});
+// ──────────────────────────────────────────────────────────
+// Env reads (once)
+// ──────────────────────────────────────────────────────────
+const dappUrl = (process.env.NEXT_PUBLIC_DAPP_URL || "").trim();
+const rpcEnv = (process.env.NEXT_PUBLIC_BSC_HTTP_1 || "").trim();
+const bscRpc = rpcEnv || "https://bsc-testnet.publicnode.com";
 
-// 3) Build Onboard
-const onboard = Onboard({
-  wallets: [
-    injected,
-    walletConnect,
-    // coinbaseWalletModule() // (OPTIONAL) add back if you really need Coinbase
-  ],
+const enableWc =
+  (process.env.NEXT_PUBLIC_ENABLE_WALLETCONNECT || "").toLowerCase() === "true";
+const wcProjectId = (process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || "").trim();
+
+// ──────────────────────────────────────────────────────────
+const injected = injectedModule();
+const coinbase = coinbaseWalletModule();
+
+// ✅ WalletConnect with dappUrl (required to avoid WC warning)
+const walletConnect =
+  enableWc && wcProjectId && dappUrl
+    ? walletConnectModule({
+        projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID!, // keep non-empty
+        requiredChains: [97],       // BSC Testnet (decimal for WC v2)
+        dappUrl: process.env.NEXT_PUBLIC_DAPP_URL!, // <-- keep this
+      })
+    : null;
+
+if (enableWc && (!wcProjectId || !dappUrl)) {
+  console.warn(
+    "[onboard] WalletConnect disabled: missing " +
+      (wcProjectId ? "" : "NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID ") +
+      (!wcProjectId && !dappUrl ? "and " : "") +
+      (dappUrl ? "" : "NEXT_PUBLIC_DAPP_URL")
+  );
+}
+
+// ⬇️ Initialize at module scope
+const onboard: OnboardAPI = Onboard({
+  wallets: compact([injected, walletConnect, coinbase]),
   chains: [
     {
-      id: "0x61", // 97
+      id: "0x61", // BSC Testnet
       token: "tBNB",
       label: "BSC Testnet",
-      rpcUrl: process.env.NEXT_PUBLIC_BSC_HTTP_1!,
+      rpcUrl: process.env.NEXT_PUBLIC_BSC_HTTP_1! || bscRpc,
     },
   ],
   appMetadata: {
     name: "Coinrush",
     description: "Coinrush on BSC Testnet",
-    icon: "https://coinrush-production.up.railway.app/icon.png",
-    gettingStartedGuide: process.env.NEXT_PUBLIC_DAPP_URL!,
-    explore: process.env.NEXT_PUBLIC_DAPP_URL!,
-    recommendedInjectedWallets: [{ name: "MetaMask", url: "https://metamask.io" }],
-  },
+    icon: "https://coinrush-production.up.railway.app/icon.png", // <- singular 'icon'
+    gettingStartedGuide: process.env.NEXT_PUBLIC_DAPP_URL!,       // optional, valid
+    explore: process.env.NEXT_PUBLIC_DAPP_URL!,                   // optional, valid
+    recommendedInjectedWallets: [
+      { name: "MetaMask", url: "https://metamask.io" }
+    ]
+  }
 });
 
 export default onboard;
-
-// 4) Auto-reconnect the last used wallet on app start
-export async function autoReconnectLastWallet() {
-  if (typeof window === "undefined") return;
-  const last = window.localStorage.getItem("cr_last_wallet_label");
-  if (!last) return;
-  try {
-    await onboard.connectWallet({
-      autoSelect: { label: last, disableModals: true },
-    });
-  } catch {
-    // ignore
-  }
-}
-
-// 5) Subscribe once to remember the current wallet label
-let subscribed = false;
-export function subscribeRememberWallet() {
-  if (subscribed) return;
-  subscribed = true;
-  onboard.state.select("wallets").subscribe((wallets) => {
-    const label = wallets[0]?.label;
-    if (label) {
-      window.localStorage.setItem("cr_last_wallet_label", label);
-    } else {
-      window.localStorage.removeItem("cr_last_wallet_label");
-    }
-  });
-}

@@ -4,18 +4,29 @@ import db from "./db";
 
 // ======= ENV & CONSTANTS =======
 const CHAIN_ID = Number(process.env.CHAIN_ID || 97);
-const FACTORY  = (process.env.NEXT_PUBLIC_BSC_FACTORY_ADDRESS || "").trim();
-if (!/^0x[a-fA-F0-9]{40}$/.test(FACTORY)) throw new Error("Set NEXT_PUBLIC_BSC_FACTORY_ADDRESS in .env.local");
 
+// Accept NEXT_PUBLIC_ or non-prefixed factory address; cleaner error text
+const FACTORY = (process.env.NEXT_PUBLIC_BSC_FACTORY_ADDRESS ?? process.env.BSC_FACTORY_ADDRESS ?? "").trim();
+if (!/^0x[0-9a-fA-F]{40}$/.test(FACTORY)) {
+  throw new Error("Missing or invalid NEXT_PUBLIC_BSC_FACTORY_ADDRESS");
+}
+
+// Accept both NEXT_PUBLIC_ and non-prefixed HTTP RPCs
 const HTTP_ENDPOINTS = [
+  process.env.NEXT_PUBLIC_BSC_HTTP_1,
   process.env.BSC_HTTP_1,
+  process.env.NEXT_PUBLIC_BSC_HTTP_2,
   process.env.BSC_HTTP_2,
+  process.env.NEXT_PUBLIC_BSC_HTTP_3,
   process.env.BSC_HTTP_3,
+  process.env.NEXT_PUBLIC_BSC_HTTP_4,
   process.env.BSC_HTTP_4,
-  process.env.BSC_HTTP_5
+  process.env.NEXT_PUBLIC_BSC_HTTP_5,
+  process.env.BSC_HTTP_5,
 ].filter(Boolean) as string[];
 
-const WSS_ENDPOINT = (process.env.BSC_WSS_1 || "").trim();
+// Accept both NEXT_PUBLIC_ and non-prefixed WSS
+const WSS_ENDPOINT = (process.env.NEXT_PUBLIC_BSC_WSS_1 ?? process.env.BSC_WSS_1 ?? "").trim();
 
 // keep each request below strict RPC caps (you saw 50k). We'll use <= 5k.
 const MAX_WINDOW = Number(process.env.LOGS_MAX_WINDOW || 5000);
@@ -35,7 +46,9 @@ const FACTORY_IFACE = new Interface([
 
 // ======= PROVIDERS =======
 async function getHttpProvider(): Promise<JsonRpcProvider> {
-  if (!HTTP_ENDPOINTS.length) throw new Error("Add BSC_HTTP_1 in .env.local");
+  if (!HTTP_ENDPOINTS.length) {
+    throw new Error("Add at least one RPC in env (NEXT_PUBLIC_BSC_HTTP_1 or BSC_HTTP_1)");
+  }
   let lastErr: any;
   for (const url of HTTP_ENDPOINTS) {
     try {

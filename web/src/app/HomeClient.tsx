@@ -589,8 +589,7 @@ export default function HomeClient({
           setPlatformFeePct((pfBps / 100).toFixed(2));
         }
       } catch (e: any) {
-        if (!cancelled) setStatus("Failed to read factory: " + (e.message || String(e)));
-      }
+        if (!cancelled) setStatus("Failed to read factory address from env. " + (e.message || String(e)));      }
     })();
     return () => { cancelled = true; };
   }, [openForm]);

@@ -1,18 +1,10 @@
+// src/app/me/page.tsx
 "use client";
 
 export const dynamic = "force-dynamic" as const;
 
 import * as React from "react";
 import { BrowserProvider } from "ethers";
-
-/*────────────────────────────────────────────────────────
-  Base URL helper (client-safe)
-────────────────────────────────────────────────────────*/
-function getBaseUrl() {
-  if (typeof window !== "undefined") return window.location.origin;
-  return (process.env.NEXT_PUBLIC_DAPP_URL || "").replace(/\/+$/, "") || "";
-}
-const BASE = getBaseUrl();
 
 /*────────────────────────────────────────────────────────
   Types
@@ -29,6 +21,12 @@ type Profile = {
 ────────────────────────────────────────────────────────*/
 const short = (a: string) => (a ? `${a.slice(0, 6)}…${a.slice(-4)}` : "");
 const same = (a?: string, b?: string) => (a || "").toLowerCase() === (b || "").toLowerCase();
+
+// Use relative URLs for same-origin API routes (robust across hosts)
+const api = {
+  profileBulk: "/api/profile/bulk",
+  profileSave: "/api/profile",
+};
 
 /* Neon UI (same feel as your other pages) */
 const ui = {
@@ -147,11 +145,11 @@ async function fileToSafeAvatarDataURL(file: File): Promise<string> {
 }
 
 /*────────────────────────────────────────────────────────
-  Fetch helpers (absolute URLs + no-store)
+  Fetch helpers (relative URLs + no-store)
 ────────────────────────────────────────────────────────*/
-async function fetchProfile(addr: string): Promise<Profile> {
+async function fetchProfile(addr: string): Promise(Profile> {
   try {
-    const r = await fetch(`${BASE}/api/profile/bulk`, {
+    const r = await fetch(api.profileBulk, {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ addresses: [addr.toLowerCase()] }),
@@ -170,7 +168,9 @@ async function fetchProfile(addr: string): Promise<Profile> {
       };
     }
     return j?.[addr.toLowerCase()] || {};
-  } catch {
+  } catch (e) {
+    // surface to console for debugging env/network issues
+    console.error("fetchProfile failed", e);
     return {};
   }
 }
@@ -182,7 +182,7 @@ async function saveProfileAPI(p: {
   twitter: string;
   telegram: string;
 }) {
-  const r = await fetch(`${BASE}/api/profile`, {
+  const r = await fetch(api.profileSave, {
     method: "POST",
     headers: {
       "content-type": "application/json",
@@ -217,6 +217,17 @@ export default function ProfileEditPage() {
   const [avatarBusy, setAvatarBusy] = React.useState(false);
   const [dragOver, setDragOver] = React.useState(false);
 
+  // Dev-only unhandled rejection logger to expose "Uncaught (in promise) Object"
+  React.useEffect(() => {
+    if (process.env.NODE_ENV !== "production") return;
+    const onUR = (e: PromiseRejectionEvent) => {
+      // Many wallets / libs reject with plain objects
+      console.error("UNHANDLED PROMISE REJECTION", e.reason);
+    };
+    window.addEventListener("unhandledrejection", onUR);
+    return () => window.removeEventListener("unhandledrejection", onUR);
+  }, []);
+
   // Wallet/address detection (no flicker, no auto-reset)
   React.useEffect(() => {
     let stop = false;
@@ -237,25 +248,28 @@ export default function ProfileEditPage() {
         }
         const eth = (globalThis as any).ethereum;
         if (eth?.request) {
-          const accs: string[] = await eth.request({ method: "eth_accounts" });
-          const a = (accs?.[0] || "").toLowerCase();
-          if (a) {
-            if (!stop) setAddress(a);
-            try {
-              localStorage.setItem("cr:lastAddress", a);
-            } catch {}
-            const p = await fetchProfile(a);
-            if (!stop)
-              setForm({
-                username: p.username || "",
-                avatar_url: p.avatar_url || "",
-                twitter: p.twitter || "",
-                telegram: p.telegram || "",
-              });
+          try {
+            const accs: string[] = await eth.request({ method: "eth_accounts" });
+            const a = (accs?.[0] || "").toLowerCase();
+            if (a) {
+              if (!stop) setAddress(a);
+              try { localStorage.setItem("cr:lastAddress", a); } catch {}
+              const p = await fetchProfile(a);
+              if (!stop)
+                setForm({
+                  username: p.username || "",
+                  avatar_url: p.avatar_url || "",
+                  twitter: p.twitter || "",
+                  telegram: p.telegram || "",
+                });
+            }
+          } catch (e) {
+            // Some wallets reject with plain objects
+            console.error("eth_accounts failed", e);
           }
         }
-      } catch {
-        // ignore
+      } catch (e) {
+        console.error("init effect failed", e);
       } finally {
         if (!stop) setLoadingWallet(false);
       }
@@ -273,7 +287,10 @@ export default function ProfileEditPage() {
         setError("No wallet detected. Install MetaMask or a compatible wallet.");
         return;
       }
-      new BrowserProvider(eth);
+      // Some providers throw synchronously if not allowed in this context
+      try {
+        new BrowserProvider(eth);
+      } catch {}
       const accounts: string[] = await eth.request({ method: "eth_requestAccounts" });
       const a = (accounts?.[0] || "").toLowerCase();
       if (!a) {
@@ -281,9 +298,7 @@ export default function ProfileEditPage() {
         return;
       }
       setAddress(a);
-      try {
-        localStorage.setItem("cr:lastAddress", a);
-      } catch {}
+      try { localStorage.setItem("cr:lastAddress", a); } catch {}
       const p = await fetchProfile(a);
       setForm({
         username: p.username || "",
@@ -292,6 +307,7 @@ export default function ProfileEditPage() {
         telegram: p.telegram || "",
       });
     } catch (e: any) {
+      console.error("connectWallet failed", e);
       setError(e?.message || "Unable to connect wallet.");
     }
   }
@@ -299,9 +315,7 @@ export default function ProfileEditPage() {
   function disconnect() {
     setAddress("");
     setForm({ username: "", avatar_url: "", twitter: "", telegram: "" });
-    try {
-      localStorage.removeItem("cr:lastAddress");
-    } catch {}
+    try { localStorage.removeItem("cr:lastAddress"); } catch {}
   }
 
   async function handleAvatarFiles(files: FileList | null) {
@@ -313,6 +327,7 @@ export default function ProfileEditPage() {
       const dataUrl = await fileToSafeAvatarDataURL(f);
       setForm((prev) => ({ ...prev, avatar_url: dataUrl }));
     } catch (e: any) {
+      console.error("avatar processing failed", e);
       setError(e?.message || "Invalid image.");
     } finally {
       setAvatarBusy(false);
@@ -346,6 +361,7 @@ export default function ProfileEditPage() {
         telegram: p.telegram || "",
       });
     } catch (e: any) {
+      console.error("save failed", e);
       setError(e?.message || "Failed to save profile.");
     } finally {
       setSaving(false);

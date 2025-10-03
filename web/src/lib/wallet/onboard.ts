@@ -21,8 +21,8 @@ function parseRequiredChains(): number[] {
     "97"; // default BSC Testnet
   return String(raw)
     .split(",")
-    .map(s => Number(String(s).trim()))
-    .filter(n => Number.isFinite(n));
+    .map((s) => Number(String(s).trim()))
+    .filter((n) => Number.isFinite(n));
 }
 
 const REQUIRED_CHAINS = (() => {
@@ -34,16 +34,15 @@ const REQUIRED_CHAINS = (() => {
 // Wallet modules
 // ————————————————————————————————————————————————
 const injected = injectedModule({
-  // Keep only MetaMask to avoid injected hijacks
-  filter: wallets =>
-    wallets.filter(
-      w => w.label === ProviderLabel.MetaMask || w.label === "MetaMask"
-    ),
+  // ✅ WalletFilters object — allow only MetaMask
+  filter: {
+    [ProviderLabel.MetaMask]: true,
+  },
 });
 
 const walletConnect = walletConnectModule({
   projectId: WC_PROJECT_ID,
-  requiredChains: REQUIRED_CHAINS, // ✅ numbers only
+  requiredChains: REQUIRED_CHAINS, // numbers only
   dappUrl: DAPP_URL,
 });
 
@@ -99,7 +98,6 @@ const LS_LAST_WALLET = "cr:lastWalletLabel";
  */
 export function subscribeRememberWallet(): () => void {
   const ob = getOnboard();
-  // select the 'wallets' slice and subscribe to changes
   const selector = ob.state.select("wallets");
   const unsubscribe = ob.state.subscribe(selector, (wallets: any[]) => {
     try {

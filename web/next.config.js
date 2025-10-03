@@ -3,14 +3,15 @@
 
 const nextConfig = {
   reactStrictMode: true,
+  productionBrowserSourceMaps: true, // ✅ show proper file/line in prod
 
   // Prevent accidental bundling of Node/RN-only modules in the browser
   webpack: (config) => {
     config.resolve.alias = {
       ...(config.resolve.alias || {}),
       // ⬇️ Make these optional deps no-ops in the browser bundle
-      'pino-pretty': false,
-      '@react-native-async-storage/async-storage': false,
+      "pino-pretty": false,
+      "@react-native-async-storage/async-storage": false,
     };
     return config;
   },
@@ -32,9 +33,7 @@ const nextConfig = {
     const imgSrc = ["'self'", "data:", "blob:", "https:", ...listFromEnv("NEXT_PUBLIC_ALLOWED_IMG")];
 
     // Dev needs both inline + eval for HMR and some libraries
-    const scriptSrc = isProd
-      ? ["'self'"]
-      : ["'self'", "'unsafe-inline'", "'unsafe-eval'"];
+    const scriptSrc = isProd ? ["'self'"] : ["'self'", "'unsafe-inline'", "'unsafe-eval'"];
 
     const styleSrc = ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"];
     const styleSrcElem = styleSrc; // cover style-src-elem explicitly

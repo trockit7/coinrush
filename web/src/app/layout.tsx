@@ -6,6 +6,7 @@ import { headers } from "next/headers";
 import Script from "next/script";
 
 import ClientProviders from "./providers/ClientProviders";
+import ClientErrorProbe from "./ClientErrorProbe"; // ✅ add
 
 export const metadata: Metadata = {
   title: "Coinrush",
@@ -30,6 +31,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body style={{ background: "#070b11", margin: 0 }}>
         <ClientProviders>{children}</ClientProviders>
+        <ClientErrorProbe /> {/* ✅ mounts global error listener */}
       </body>
     </html>
   );

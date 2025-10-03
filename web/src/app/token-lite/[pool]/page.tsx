@@ -1,25 +1,11 @@
-/ src/app/token-lite/[pool]/page.tsx
+// src/app/token-lite/[pool]/page.tsx
 "use client";
-
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
 
 import React from "react";
 import { useParams } from "next/navigation";
-import nextDynamic from "next/dynamic";
+import dynamic from "next/dynamic";
 import styles from "./styles.module.css";
 import { useConnectWallet } from "@web3-onboard/react";
-
-// ❌ REMOVE these lines:
-// import { serverBaseUrl } from "@/lib/base-url";
-// const BASE = serverBaseUrl();
-
-// ✅ ADD this client-safe helper:
-function clientBaseUrl() {
-  if (typeof window !== "undefined") return window.location.origin;
-  return (process.env.NEXT_PUBLIC_DAPP_URL || "").replace(/\/+$/, "") || "";
-}
-const BASE = clientBaseUrl();
 
 import {
   Snapshot,
@@ -112,7 +98,7 @@ const ERC20_MIN_ABI = [
 /* small utils */
 
 const toBI = (v: number | bigint) => (typeof v === "bigint" ? v : BigInt(Math.trunc(v)));
-const RemoteCandlesChart = nextDynamic(() => import("@/components/RemoteCandlesChart"), { ssr: false });
+const RemoteCandlesChart = dynamic(() => import("@/components/RemoteCandlesChart"), { ssr: false });
 
 /* helper: works whether getConnectedAddress returns string or Promise<string> */
 async function safeConnectedAddress(): Promise<string> {
@@ -192,7 +178,7 @@ async function fetchProfiles(addrs: string[]): Promise<ProfilesBook> {
   const uniq = Array.from(new Set((addrs || []).map(a => (a || "").toLowerCase()).filter(Boolean)));
   if (!uniq.length) return {};
   try {
-    const r = await fetch(`${BASE}/api/profile/bulk`, {
+    const r = await fetch("/api/profile/bulk", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ addresses: uniq }),
@@ -629,7 +615,7 @@ export default function PublicTokenLitePage() {
 
   const fetchNews = React.useCallback(async () => {
     try {
-      const r = await fetch(`${BASE}/api/news?pool=${poolAddr}`, { cache: "no-store" });
+      const r = await fetch(`/api/news?pool=${poolAddr}`, { cache: "no-store" });
       const j = await r.json();
       setNews(Array.isArray(j) ? j : []);
     } catch {}
@@ -644,7 +630,7 @@ export default function PublicTokenLitePage() {
       const payload = editingId
         ? { id: editingId, body: newsBody, pool: poolAddr }
         : { body: newsBody, pool: poolAddr };
-      const r = await fetch(`${BASE}/api/news`, {
+      const r = await fetch("/api/news", {
         method,
         headers: { "content-type": "application/json", "x-addr": a },
         body: JSON.stringify(payload),
@@ -664,7 +650,7 @@ export default function PublicTokenLitePage() {
 
       if (!a) { setAuthHint("Connect wallet first"); return; }
 
-      const r = await fetch(`${BASE}/api/news`, {
+      const r = await fetch("/api/news", {
         method: "DELETE",
         headers: { "content-type": "application/json", "x-addr": a },
         body: JSON.stringify({ id }),
@@ -686,7 +672,7 @@ export default function PublicTokenLitePage() {
     const a = (addressLower || addr || viewer || "").toLowerCase();
     if (!a) { setHasProfile(false); return; }
     try {
-      const r = await fetch(`${BASE}/api/profile/bulk`, {
+      const r = await fetch("/api/profile/bulk", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ addresses: [a] }),
@@ -717,7 +703,7 @@ export default function PublicTokenLitePage() {
         setSnap(s);
 
         let j: any = {};
-        try { j = await fetch(`${BASE}/api/pool/meta?pool=${poolAddr}&chain=${chain}`).then(r => r.json()).catch(() => ({})); } catch {}
+        try { j = await fetch(`/api/pool/meta?pool=${poolAddr}&chain=${chain}`).then(r => r.json()).catch(() => ({})); } catch {}
         let migrated = Boolean(j?.migrated);
         let created_by = (j?.created_by || "").toLowerCase();
 

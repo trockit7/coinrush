@@ -1,17 +1,25 @@
-// src/app/token-lite/[pool]/page.tsx
+/ src/app/token-lite/[pool]/page.tsx
 "use client";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
-
-import { serverBaseUrl } from "@/lib/base-url";
-const BASE = serverBaseUrl();
 
 import React from "react";
 import { useParams } from "next/navigation";
 import nextDynamic from "next/dynamic";
 import styles from "./styles.module.css";
 import { useConnectWallet } from "@web3-onboard/react";
+
+// ❌ REMOVE these lines:
+// import { serverBaseUrl } from "@/lib/base-url";
+// const BASE = serverBaseUrl();
+
+// ✅ ADD this client-safe helper:
+function clientBaseUrl() {
+  if (typeof window !== "undefined") return window.location.origin;
+  return (process.env.NEXT_PUBLIC_DAPP_URL || "").replace(/\/+$/, "") || "";
+}
+const BASE = clientBaseUrl();
 
 import {
   Snapshot,

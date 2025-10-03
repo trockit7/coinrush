@@ -147,7 +147,7 @@ async function fileToSafeAvatarDataURL(file: File): Promise<string> {
 /*────────────────────────────────────────────────────────
   Fetch helpers (relative URLs + no-store)
 ────────────────────────────────────────────────────────*/
-async function fetchProfile(addr: string): Promise(Profile> {
+async function fetchProfile(addr: string): Promise<Profile> {
   try {
     const r = await fetch(api.profileBulk, {
       method: "POST",

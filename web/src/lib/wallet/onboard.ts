@@ -98,8 +98,10 @@ const LS_LAST_WALLET = "cr:lastWalletLabel";
  */
 export function subscribeRememberWallet(): () => void {
   const ob = getOnboard();
-  const selector = ob.state.select("wallets");
-  const unsubscribe = ob.state.subscribe(selector, (wallets: any[]) => {
+  const wallets$ = ob.state.select("wallets"); // <- observable
+
+  // Subscribe to changes (handle both observable styles just in case)
+  const sub: any = (wallets$ as any).subscribe((wallets: any[]) => {
     try {
       const first = wallets?.[0];
       if (first?.label) {
@@ -111,7 +113,15 @@ export function subscribeRememberWallet(): () => void {
       /* ignore */
     }
   });
-  return unsubscribe;
+
+  // Return a robust unsubscribe that works whether the lib returns
+  // { unsubscribe() } or a cleanup function
+  return () => {
+    try {
+      if (typeof sub?.unsubscribe === "function") sub.unsubscribe();
+      else if (typeof sub === "function") sub();
+    } catch {}
+  };
 }
 
 /**

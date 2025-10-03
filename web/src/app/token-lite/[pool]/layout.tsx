@@ -1,6 +1,7 @@
 // src/app/token-lite/[pool]/layout.tsx
 export const dynamic = "force-dynamic";
 export const revalidate = 0; // or: false
+export const fetchCache = "force-no-store";  // extra guard
 
 import React from "react";
 

@@ -1,11 +1,20 @@
 // src/app/token-lite/[pool]/page.tsx
 "use client";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 import React from "react";
 import { useParams } from "next/navigation";
-import dynamic from "next/dynamic";
+import nextDynamic from "next/dynamic";
 import styles from "./styles.module.css";
 import { useConnectWallet } from "@web3-onboard/react";
+
+// ✅ client-safe base URL helper (call at use sites, not at module top)
+function clientBaseUrl() {
+  if (typeof window !== "undefined") return window.location.origin;
+  return (process.env.NEXT_PUBLIC_DAPP_URL || "").replace(/\/+$/, "") || "";
+}
 
 import {
   Snapshot,
@@ -98,7 +107,7 @@ const ERC20_MIN_ABI = [
 /* small utils */
 
 const toBI = (v: number | bigint) => (typeof v === "bigint" ? v : BigInt(Math.trunc(v)));
-const RemoteCandlesChart = dynamic(() => import("@/components/RemoteCandlesChart"), { ssr: false });
+const RemoteCandlesChart = nextDynamic(() => import("@/components/RemoteCandlesChart"), { ssr: false });
 
 /* helper: works whether getConnectedAddress returns string or Promise<string> */
 async function safeConnectedAddress(): Promise<string> {
@@ -178,7 +187,7 @@ async function fetchProfiles(addrs: string[]): Promise<ProfilesBook> {
   const uniq = Array.from(new Set((addrs || []).map(a => (a || "").toLowerCase()).filter(Boolean)));
   if (!uniq.length) return {};
   try {
-    const r = await fetch("/api/profile/bulk", {
+    const r = await fetch(`${clientBaseUrl()}/api/profile/bulk`, {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ addresses: uniq }),
@@ -615,7 +624,7 @@ export default function PublicTokenLitePage() {
 
   const fetchNews = React.useCallback(async () => {
     try {
-      const r = await fetch(`/api/news?pool=${poolAddr}`, { cache: "no-store" });
+      const r = await fetch(`${clientBaseUrl()}/api/news?pool=${poolAddr}`, { cache: "no-store" });
       const j = await r.json();
       setNews(Array.isArray(j) ? j : []);
     } catch {}
@@ -630,7 +639,7 @@ export default function PublicTokenLitePage() {
       const payload = editingId
         ? { id: editingId, body: newsBody, pool: poolAddr }
         : { body: newsBody, pool: poolAddr };
-      const r = await fetch("/api/news", {
+      const r = await fetch(`${clientBaseUrl()}/api/news`, {
         method,
         headers: { "content-type": "application/json", "x-addr": a },
         body: JSON.stringify(payload),
@@ -650,7 +659,7 @@ export default function PublicTokenLitePage() {
 
       if (!a) { setAuthHint("Connect wallet first"); return; }
 
-      const r = await fetch("/api/news", {
+      const r = await fetch(`${clientBaseUrl()}/api/news`, {
         method: "DELETE",
         headers: { "content-type": "application/json", "x-addr": a },
         body: JSON.stringify({ id }),
@@ -672,7 +681,7 @@ export default function PublicTokenLitePage() {
     const a = (addressLower || addr || viewer || "").toLowerCase();
     if (!a) { setHasProfile(false); return; }
     try {
-      const r = await fetch("/api/profile/bulk", {
+      const r = await fetch(`${clientBaseUrl()}/api/profile/bulk`, {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ addresses: [a] }),
@@ -703,7 +712,7 @@ export default function PublicTokenLitePage() {
         setSnap(s);
 
         let j: any = {};
-        try { j = await fetch(`/api/pool/meta?pool=${poolAddr}&chain=${chain}`).then(r => r.json()).catch(() => ({})); } catch {}
+        try { j = await fetch(`${clientBaseUrl()}/api/pool/meta?pool=${poolAddr}&chain=${chain}`).then(r => r.json()).catch(() => ({})); } catch {}
         let migrated = Boolean(j?.migrated);
         let created_by = (j?.created_by || "").toLowerCase();
 
@@ -1389,18 +1398,18 @@ const onSell = async () => {
                 inputMode="decimal"
                 pattern="[0-9]*[.]?[0-9]*"
               />
-<button
-  type="button"
-  onClick={async () => {
-    await refreshWallet();
-    if (walletTokenStr) setSellTokens(walletTokenStr);
-    else setSellMsg("No token balance to sell.");
-  }}
-  className={`${styles.btn} ${styles.btnGhostSm}`}
-  title={walletTokenStr ? `${trimZeros(walletTokenStr)} ${snap?.symbol || ""}` : "No balance"}
->
-  Max
-</button>
+              <button
+                type="button"
+                onClick={async () => {
+                  await refreshWallet();
+                  if (walletTokenStr) setSellTokens(walletTokenStr);
+                  else setSellMsg("No token balance to sell.");
+                }}
+                className={`${styles.btn} ${styles.btnGhostSm}`}
+                title={walletTokenStr ? `${trimZeros(walletTokenStr)} ${snap?.symbol || ""}` : "No balance"}
+              >
+                Max
+              </button>
             </div>
             <div className={styles.help}>
               Est. price: {sellQuote.price != null ? `${fmtUSD(usdPerBnb * sellQuote.price)} / ${snap?.symbol || ""}` : "—"}
@@ -1537,7 +1546,7 @@ const onSell = async () => {
             </div>
           ) : null}
 
-          {meta && (meta.website || meta.telegram || meta.twitter) ? (
+          {meta and (meta.website || meta.telegram || meta.twitter) ? (
             <div className={`${styles.card} mobileMetaCard`}>
               <div className="mobileCardTitle">Links</div>
               <div className="mobileLinks">

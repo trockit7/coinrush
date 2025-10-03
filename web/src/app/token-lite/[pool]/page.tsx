@@ -1,10 +1,6 @@
 // src/app/token-lite/[pool]/page.tsx
 "use client";
 
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
-export const fetchCache = "force-no-store";  // extra guard
-
 import React from "react";
 import { useParams } from "next/navigation";
 import nextDynamic from "next/dynamic";
@@ -1547,7 +1543,7 @@ const onSell = async () => {
             </div>
           ) : null}
 
-          {meta and (meta.website || meta.telegram || meta.twitter) ? (
+{meta && (meta.website || meta.telegram || meta.twitter) ? (
             <div className={`${styles.card} mobileMetaCard`}>
               <div className="mobileCardTitle">Links</div>
               <div className="mobileLinks">

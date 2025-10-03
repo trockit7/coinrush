@@ -1,7 +1,9 @@
 // src/app/token-lite/layout.tsx
+
+// server layout just for segment options
 export const dynamic = "force-dynamic";
-export const revalidate = 0; // primitive number (or use: false)
-export const fetchCache = "force-no-store";  // extra guard
+export const revalidate = 0;            // or: false
+export const fetchCache = "force-no-store";
 
 import React from "react";
 
@@ -10,5 +12,5 @@ export default function TokenLiteLayout({
 }: {
   children: React.ReactNode;
 }) {
-  // no server fetches here
   return <>{children}</>;
+}
